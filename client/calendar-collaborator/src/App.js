@@ -15,12 +15,14 @@ function App() {
   const [timesAvailable, setTimesAvailable] = useState([[]]);
   const [items, setItems] = useState([]);
   const [reload, setReload] = useState(0);
+  const [user, setUser] = useState('');
   const [timeLine, setTimeLine] = useState([<Timeline
+    key={1}
     groups={groups}
     items={items}
     defaultTimeStart={moment().add(0, 'hour')}
     defaultTimeEnd={moment().add(96, 'hour')}
-  />])
+  />]);
 
   useEffect(() => {
     if (!ready && eventList.length) {
@@ -29,17 +31,20 @@ function App() {
       for (let i=0;i<eventList.length;i++) {
         if (eventList[i].attendees) {
           for (const attendee of eventList[i].attendees) {
-            let groupFind = groupTemp.filter(group => group.title === attendee.email);
-            if (!groupFind.length) {
-              groupTemp.push({ id: groupID, title: attendee.email });
-              groupID++;
-              setTimesAvailable([...timesAvailable, []]);
+            if (attendee.email!==user) {
+              let groupFind = groupTemp.filter(group => group.title === attendee.email);
+              if (!groupFind.length) {
+                groupTemp.push({ id: groupID, title: attendee.email });
+                groupID++;
+                setTimesAvailable([...timesAvailable, []]);
+              }
             }
           }
         }
       }
       setGroups([{ id: 0, title: 'Global Events' }, ...groupTemp]);
       setReload(reload+1);
+      
       setReady(true);
     }
   },[eventList]);
@@ -51,6 +56,7 @@ function App() {
       setHolidaysAvailable(result[1]);
       setItems(result[2]);
       setTimeLine([<Timeline
+        key={1}
         groups={groups}
         items={items}
         defaultTimeStart={moment().add(0, 'hour')}
@@ -63,21 +69,16 @@ function App() {
   },[eventList, reload]);
 
   const resetItems = (groupNum, groupList) => {
-    console.log(groupList)
     let itemID = 0;
     let timesTemp;
     let holidayTemp = [];
     let items = [];
     timesTemp = new Array(groupNum).fill([]);
-    console.log(timesTemp);
     for (let i=0;i<eventList.length;i++) {
       holidayTemp.push([eventList[i].start.dateTime,eventList[i].end.dateTime]);
-      console.log(eventList[i].attendees);
       if (eventList[i].attendees) {
         for (const attendee of eventList[i].attendees) {
           let groupFind = groupList.filter(group => group.title === attendee.email);
-          console.log(groupList);
-          console.log(attendee.email)
           let group = 0;
           if (groupFind.length) {
             group = groupFind[0].id;
@@ -112,7 +113,6 @@ function App() {
         itemID++;
       }
     }
-    console.log(items)
     return [timesTemp, holidayTemp, items];
   }
 
@@ -120,7 +120,9 @@ function App() {
     if (name === 'sign-in') {
       if (apiCalendar.gapi) {
         try {
-          await apiCalendar.gapi.auth2.getAuthInstance().signIn();
+          let authInstance = await apiCalendar.gapi.auth2.getAuthInstance();
+          setUser(authInstance.currentUser.le.tt.$t);
+          await authInstance.signIn();
           await apiCalendar.listEvents().then((res)=>setEventList(res.result.items));
           apiCalendar.updateSignedIn(true);
         } catch (err) {
@@ -131,23 +133,39 @@ function App() {
         console.error("Error: this.gapi not loaded");
       }
     } else if (name === 'sign-out') {
+      console.log('signed out')
       if (apiCalendar.gapi) {
+        try {
         const auth2 = apiCalendar.gapi.auth2.getAuthInstance();
         await auth2.signOut().then(function () {
           apiCalendar.updateSignedIn(false);
           setEventList([]);
         });
+        } catch (err) {
+          console.error(err);
+        }
+        setEventList([]);
+        setReady(false);
+        setGroups([{ id: 1, title: 'Global Events' }]);
+        setHolidaysAvailable([]);
+        setTimesAvailable([[]]);
+        setItems([]);
+        setReload(0);
+        setTimeLine([<Timeline
+          key={1}
+          groups={groups}
+          items={items}
+          defaultTimeStart={moment().add(0, 'hour')}
+          defaultTimeEnd={moment().add(96, 'hour')}
+        />]);
       } else {
         console.error("Error: gapi not loaded");
       }
-    } else {
-      setReload(!reload);
     }
   }
 
   return (
     <>
-    {console.log(timeLine)}
       {apiCalendar.signedIn ?
       (ready ?<>
         {timeLine}
@@ -159,8 +177,7 @@ function App() {
         groups={groups}/>
       </>:<h1>loading</h1>):
       <LogIn handleItemClick = {handleItemClick}/>}
-      <button onClick={(e) => handleItemClick(e, 'sign-out')}>sign-out</button>
-      <button onClick={(e) => handleItemClick(e, 'reload')}>reload</button>
+      <button onClick={(e) => handleItemClick(e, 'sign-out')}>Sign-Out</button>
     </>
   );
 }
