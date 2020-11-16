@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import apiCalendar from '../ApiCalendar';
 
 export default function addEvent(props) {
@@ -6,9 +6,24 @@ export default function addEvent(props) {
   const [startDate, setStartDate] = useState([]);
   const [endDate, setEndDate] = useState([]);
   const [recurrence, setRecurrence] = useState('NONE');
+  const [participants, setParticipants] = useState([]);
+  const [holiday, setHoliday] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    for (let j=0;j<props.timesAvailable[0].length;j++) {
+      if (props.timesAvailable[0][j][0] < startDate && props.timesAvailable[0][j][1] > startDate) {
+        console.error('clash with global event');
+        return;
+      }
+    }
+    console.log(props.holidaysAvailable)
+    for (let j=0;j<props.holidaysAvailable.length;j++) {
+      if (props.holidaysAvailable[j][0] < startDate && props.timesAvailable[j][1] > startDate) {
+        console.error('clash with another holiday');
+        return;
+      }
+    }
     const event = {
       "summary": title,
       "location": "Somewhere",
@@ -26,12 +41,28 @@ export default function addEvent(props) {
       await apiCalendar.createEvent(event);
       await apiCalendar.listEvents().then((res)=>props.setEventList(res.result.items));
       apiCalendar.updateSignedIn(true);
-    } else {
-      await apiCalendar.createEvent(event)
-        .then((res)=>{
-          props.setEventList([...props.eventList, res.result]);
-        });
     }
+    if (participants.includes(true)) {
+      let participantEmails = [];
+      for (let i=0;i<participants.length;i++) {
+        if (participants[i]) {
+          for (let j=0;j<props.timesAvailable[i].length;j++) {
+            if (props.timesAvailable[i][j][0] < startDate && props.timesAvailable[i][j][1] > startDate) {
+              console.error('clash with participant event');
+              return;
+            }
+          }
+          participantEmails.push({'email': props.groups[i].title})
+        }
+      }
+      event["attendees"] = participantEmails;
+    }
+    if (holiday) {
+      event["description"] = 'holiday';
+    }
+    await apiCalendar.createEvent(event);
+    await apiCalendar.listEvents().then((res)=>props.setEventList(res.result.items));
+
   }
 
   const handleChange = (e) => {
@@ -41,20 +72,25 @@ export default function addEvent(props) {
       setStartDate(e.target.value);
     } else if (e.target.name==='endDate') {
       setEndDate(e.target.value);
-    } else {
+    } else if (e.target.name==='reccurence') {
       setRecurrence(e.target.value.toUpperCase());
-      console.log(recurrence);
+    } else if (e.target.name==='holiday') {
+      setHoliday(!holiday);
+    } else {
+      let tempParticipants = participants.slice();
+      tempParticipants[parseInt(e.target.name)] = !tempParticipants[parseInt(e.target.name)];
+      setParticipants(tempParticipants);
     }
   }
 
   return (
     <form onSubmit = {handleSubmit}>
       <label>Event title</label>
-      <input type="text" name="title" onChange={handleChange}/>
+        <input type="text" name="title" onChange={handleChange}/>
       <label>Start Date and Time</label>
-      <input type="datetime-local" name="startDate" onChange={handleChange}/>
+        <input type="datetime-local" name="startDate" onChange={handleChange}/>
       <label>End Date and Time</label>
-      <input type="datetime-local" name="endDate" onChange={handleChange}/>
+        <input type="datetime-local" name="endDate" onChange={handleChange}/>
       <label>Repeat every:</label>
       <select id="reccurence" name="reccurence" onChange={handleChange}>
         <option value="none">none</option>
@@ -62,6 +98,13 @@ export default function addEvent(props) {
         <option value="weekly">weekly</option>
         <option value="daily">daily</option>
       </select>
+      <label>Holiday: </label>
+      <input type="checkbox" name="holiday" onChange={handleChange}/>
+      <label>Participants:</label>
+      {props.groups.map(group => <>
+        <label>{group.title}</label>
+        <input type="checkbox" name={group.id} onChange={handleChange}/>
+        </>)}
       <input type="submit" value="Submit"/>
     </form>
   )
