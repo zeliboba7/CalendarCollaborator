@@ -42,21 +42,23 @@ function App() {
       setReload(reload+1);
       setReady(true);
     }
-  });
+  },[eventList]);
 
   useEffect(() => {
-    let result = resetItems(groups.length, groups);
-    setTimesAvailable(result[0]);
-    setHolidaysAvailable(result[1]);
-    setItems(result[2]);
-    setTimeLine([<Timeline
-      groups={groups}
-      items={items}
-      defaultTimeStart={moment().add(0, 'hour')}
-      defaultTimeEnd={moment().add(96, 'hour')}
-    />])
-    if (reload<=2) {
-      setReload(reload+1);
+    if (ready) {
+      let result = resetItems(groups.length, groups);
+      setTimesAvailable(result[0]);
+      setHolidaysAvailable(result[1]);
+      setItems(result[2]);
+      setTimeLine([<Timeline
+        groups={groups}
+        items={items}
+        defaultTimeStart={moment().add(0, 'hour')}
+        defaultTimeEnd={moment().add(96, 'hour')}
+      />])
+      if (reload<=2) {
+        setReload(reload+1);
+      }
     }
   },[eventList, reload]);
 

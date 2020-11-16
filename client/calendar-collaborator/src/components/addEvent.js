@@ -3,24 +3,30 @@ import apiCalendar from '../ApiCalendar';
 
 export default function addEvent(props) {
   const [title, setTitle] = useState([]);
-  const [startDate, setStartDate] = useState([]);
-  const [endDate, setEndDate] = useState([]);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [recurrence, setRecurrence] = useState('NONE');
   const [participants, setParticipants] = useState([]);
   const [holiday, setHoliday] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log(startDate.length)
+    if (title.length===0||startDate.length===0||endDate.length===0||!participants.includes(true)) {
+      setErrorMessage('set all fields');
+      return;
+    }
     for (let j=0;j<props.timesAvailable[0].length;j++) {
       if (props.timesAvailable[0][j][0] < startDate && props.timesAvailable[0][j][1] > startDate) {
-        console.error('clash with global event');
+        setErrorMessage('clash with global event');
         return;
       }
     }
     console.log(props.holidaysAvailable)
     for (let j=0;j<props.holidaysAvailable.length;j++) {
       if (props.holidaysAvailable[j][0] < startDate && props.timesAvailable[j][1] > startDate) {
-        console.error('clash with another holiday');
+        setErrorMessage('clash with another holiday');
         return;
       }
     }
@@ -48,7 +54,7 @@ export default function addEvent(props) {
         if (participants[i]) {
           for (let j=0;j<props.timesAvailable[i].length;j++) {
             if (props.timesAvailable[i][j][0] < startDate && props.timesAvailable[i][j][1] > startDate) {
-              console.error('clash with participant event');
+              setErrorMessage('clash with participant event');
               return;
             }
           }
@@ -106,6 +112,7 @@ export default function addEvent(props) {
         <input type="checkbox" name={group.id} onChange={handleChange}/>
         </>)}
       <input type="submit" value="Submit"/>
+      <label>{errorMessage}</label>
     </form>
   )
 }
