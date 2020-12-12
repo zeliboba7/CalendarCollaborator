@@ -1,9 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
 
 body {
-  background-color: rgb(71, 71, 71);
+  background-color: white;
   color: rgb(0, 0, 0);
   font-family: 'Roboto', sans-serif;
+}
+
+input:focus {
+  outline: none;
 }
 
 button {
@@ -13,6 +17,12 @@ button {
   background-color: rgb(190, 190, 190);
   color: rgb(0, 0, 0);
   font-family: 'Roboto', sans-serif;
+}
+
+button:focus {
+  outline: none;
+  background-color:black;
+  color:white;
 }
 
 input, select  {

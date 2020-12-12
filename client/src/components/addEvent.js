@@ -134,7 +134,7 @@ export default function addEvent(props) {
           <label>{group.title}</label>
           <input type="checkbox" name={group.id} onChange={handleChange}/>
           </div>)}
-          <input type="submit" value="Submit"/>
+          <input type="submit" value="Submit" class="submit"/>
         <label className="error">{errorMessage}</label>
       </form>
       <form onSubmit = {submitAdditionalParticipant}>
