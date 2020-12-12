@@ -4,7 +4,7 @@ import AddEvent from './components/addEvent'
 import React, {useState, useEffect} from 'react';
 import apiCalendar from './ApiCalendar'
 import Timeline from 'react-calendar-timeline';
-import 'react-calendar-timeline/lib/Timeline.css';
+import './Timeline.css';
 import moment from 'moment';
 
 function App() {
@@ -23,6 +23,7 @@ function App() {
     defaultTimeStart={moment().add(0, 'hour')}
     defaultTimeEnd={moment().add(96, 'hour')}
   />]);
+  const [toggle, setToggle] = useState(0);
 
   useEffect(() => {
     if (!ready && eventList.length) {
@@ -62,10 +63,12 @@ function App() {
         defaultTimeStart={moment().add(0, 'hour')}
         defaultTimeEnd={moment().add(96, 'hour')}
       />])
+      console.log('called')
       if (reload<=2) {
         setReload(reload+1);
       }
     }
+    setToggle(toggle+1);
   },[eventList, reload]);
 
   const resetItems = (groupNum, groupList) => {
@@ -121,8 +124,8 @@ function App() {
       if (apiCalendar.gapi) {
         try {
           let authInstance = await apiCalendar.gapi.auth2.getAuthInstance();
-          setUser(authInstance.currentUser.le.tt.$t);
           await authInstance.signIn();
+          setUser(await authInstance.currentUser.get().getBasicProfile().getEmail());
           await apiCalendar.listEvents().then((res)=>setEventList(res.result.items));
           apiCalendar.updateSignedIn(true);
         } catch (err) {
@@ -165,20 +168,21 @@ function App() {
   }
 
   return (
-    <>
-      {apiCalendar.signedIn ?
-      (ready ?<>
+    <div className="container"> 
+      <LogIn handleItemClick={handleItemClick} ready={ready}/>
+      {ready &&
+      <>
         {timeLine}
         <AddEvent 
         eventList={eventList} 
         setEventList={setEventList} 
         timesAvailable={timesAvailable}
         holidaysAvailable={holidaysAvailable}
-        groups={groups}/>
-      </>:<h1>loading</h1>):
-      <LogIn handleItemClick = {handleItemClick}/>}
-      <button onClick={(e) => handleItemClick(e, 'sign-out')}>Sign-Out</button>
-    </>
+        groups={groups}
+        toggle={toggle}
+        setToggle={setToggle}/>
+      </>}
+    </div>
   );
 }
 

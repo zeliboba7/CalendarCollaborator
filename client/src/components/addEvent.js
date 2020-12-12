@@ -6,7 +6,7 @@ export default function addEvent(props) {
   const [title, setTitle] = useState([]);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [recurrence, setRecurrence] = useState('NONE');
+  const [recurrence, setRecurrence] = useState('N/A');
   const [participants, setParticipants] = useState([]);
   const [holiday, setHoliday] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -25,15 +25,17 @@ export default function addEvent(props) {
         return;
       }
     }
-    for (let j=0;j<props.holidaysAvailable.length;j++) {
-      if (props.holidaysAvailable[j][0] < startDate && props.holidaysAvailable[j][1] > startDate) {
-        setErrorMessage('There was a clash with another holiday');
-        return;
+    if (holiday) {
+      for (let j=0;j<props.holidaysAvailable.length;j++) {
+        if (props.holidaysAvailable[j][0] < startDate && props.holidaysAvailable[j][1] > startDate) {
+          setErrorMessage('There was a clash with another holiday');
+          return;
+        }
       }
     }
     const event = {
       "summary": title,
-      "location": "Somewhere",
+      "location": "Work",
       "start": {
         "dateTime": new Date(startDate).toISOString(),
         "timeZone": "Europe/London"
@@ -43,15 +45,12 @@ export default function addEvent(props) {
         "timeZone": "Europe/London"
       },
     }
-    if (recurrence!=='NONE') {
+    if (recurrence!=='N/A') {
       event["recurrence"] = [`RRULE:FREQ=${recurrence};UNTIL=20210701T170000Z`];
-      await apiCalendar.createEvent(event);
-      await apiCalendar.listEvents().then((res)=>props.setEventList(res.result.items));
-      apiCalendar.updateSignedIn(true);
     }
     if (participants.includes(true)) {
       let participantEmails = [];
-      for (let i=0;i<participants.length;i++) {
+      for (let i=1;i<participants.length;i++) {
         if (participants[i]) {
           for (let j=0;j<props.timesAvailable[i].length;j++) {
             if (props.timesAvailable[i][j][0] < startDate && props.timesAvailable[i][j][1] > startDate) {
@@ -74,7 +73,10 @@ export default function addEvent(props) {
     }
     try {
       await apiCalendar.createEvent(event);
-      await apiCalendar.listEvents().then((res)=>props.setEventList(res.result.items));
+      await apiCalendar.listEvents().then((res)=>{
+        props.setToggle(props.toggle+1);
+        props.setEventList(res.result.items)});
+      props.setToggle(props.toggle+1);
     } catch (err) {
       console.error(err);
     }
@@ -110,17 +112,17 @@ export default function addEvent(props) {
   }
 
   return (
-    <>
+    <div className="formContainer">
       <form onSubmit = {handleSubmit}>
         <label>Event title:</label>
-          <input autocomplete="off" type="text" name="title" onChange={handleChange}/>
+          <input autoComplete="off" type="text" name="title" onChange={handleChange}/>
         <label>Start Date and Time:</label>
           <input type="datetime-local" name="startDate" onChange={handleChange}/>
         <label>End Date and Time:</label>
           <input type="datetime-local" name="endDate" onChange={handleChange}/>
         <label>Repeat every:</label>
         <select id="reccurence" name="reccurence" onChange={handleChange}>
-          <option value="none">none</option>
+          <option value="none">n/a</option>
           <option value="monthly">monthly</option>
           <option value="weekly">weekly</option>
           <option value="daily">daily</option>
@@ -133,14 +135,14 @@ export default function addEvent(props) {
           <input type="checkbox" name={group.id} onChange={handleChange}/>
           </div>)}
           <input type="submit" value="Submit"/>
-        <label>{errorMessage}</label>
+        <label className="error">{errorMessage}</label>
       </form>
       <form onSubmit = {submitAdditionalParticipant}>
         <label>Additional participants:</label>
-        <input autocomplete="off" type="text" name="additional participant" onChange={handleChange}/>
+        <input autoComplete="off" type="text" name="additional participant" onChange={handleChange}/>
         {additionalParticipants.map(participant=><label key={participant}>{participant}</label>)}
         <input type="submit" value="Set Additional Participant"/>
       </form>
-    </>
+    </div>
   )
 }

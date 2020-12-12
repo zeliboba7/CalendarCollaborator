@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
+
+body {
+  background-color: rgb(71, 71, 71);
+  color: rgb(0, 0, 0);
+  font-family: 'Roboto', sans-serif;
+}
+
+button {
+  padding: 10px;
+  border-radius: 10px;
+  border: 0px;
+  background-color: rgb(190, 190, 190);
+  color: rgb(0, 0, 0);
+  font-family: 'Roboto', sans-serif;
+}
+
+input, select  {
+  margin: 2px;
+  padding: 5px;
+  border-radius: 10px;
+  border: 0px;
+  color: rgb(0, 0, 0);
+  font-family: 'Roboto', sans-serif;
+}

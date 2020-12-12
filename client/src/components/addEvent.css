@@ -1,0 +1,21 @@
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin:50px;
+  background-color: rgb(190, 190, 190);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+label {
+  margin-top: 15px;
+}
+
+.formContainer {
+  display: flex;
+}
+
+.error {
+  color:red;
+}
