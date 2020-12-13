@@ -17,7 +17,7 @@ Calendar is shown on top with input fields for adding items.
 We can enter info to add another item here.
 ![image](./screenshots/setEvent.png)
 And the item appears in google calendars!
-![image](./screenshots/setEvent.png)
+![image](./screenshots/addedToCalendar.png)
 
 ## Technologies
 +React
