@@ -76,7 +76,8 @@ export default function addEvent(props) {
       await apiCalendar.listEvents().then((res)=>{
         props.setToggle(props.toggle+1);
         props.setEventList(res.result.items)});
-      props.setToggle(props.toggle+1);
+        props.setToggle(props.toggle+1);
+        setAdditionalParticipants([]);
     } catch (err) {
       console.error(err);
     }
