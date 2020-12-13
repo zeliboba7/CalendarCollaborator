@@ -13,10 +13,15 @@ All events added are also automatically added to all participant calendars.
 
 ## Example
 Calendar is shown on top with input fields for adding items.
+
 ![image](./screenshots/overview.png)
+
 We can enter info to add another item here.
+
 ![image](./screenshots/setEvent.png)
+
 And the item appears in google calendars!
+
 ![image](./screenshots/addedToCalendar.png)
 
 ## Technologies
